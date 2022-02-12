@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block start %}
+
+
+
+<div class="container mt-5 pt-5">
+  <h3>Order id - {{order.order_id}}</h3>
+  <p>Amount - ₹ {{order.amount}}</p>
+  <span class="badge badge-primary" id="status">Primary</span>
+  <div class="progress mt-4">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="50"
+      aria-valuemin="0" aria-valuemax="100" style="width: 20%"></div>
+  </div>
+  <div class="card product-card shadow border pb-2" style="width:400px"><a class="d-block" href="#quick-view" data-toggle="modal"><img
+   id="img_status" class="card-img-top" src="/static/images/received.svg" alt="Pizza" ></a>
+
+</div>
+
+
+<script>
+  var order_id = '{{order.order_id}}'
+  let socket = new WebSocket('ws://127.0.0.1:8000/ws/pizza/' + order_id);
+  socket.onopen = function (e) {
+    console.log('Connection established');
+  };
+
+  socket.onmessage = function (e) {
+    var data = JSON.parse(e.data)
+    var value = data.payload.progress
+    console.log(data)
+    increaseProgress(value , data.payload.status)
+
+  };
+  socket.onclose = function (e) {
+    console.log('Connection closed');
+  };
+
+  function increaseProgress(value , status){
+   
+    var progress = document.querySelector('.progress-bar')
+    var status_html = document.querySelector('#status')
+    var img = document.getElementById("img_status")
+
+    switch(value){
+      case 20:
+        img.src="/static/images/received.svg";
+        break;
+      case 40:
+        img.src="/static/images/baking.svg";
+        break;
+      case 60:
+        img.src="/static/images/baked.svg";
+        break;
+      case 80:
+        img.src="/static/images/food-delivery.svg";
+        break;
+      case 100:
+        img.src="/static/images/check.svg";
+        break;
+      
+      
+    }
+
+    if(value == 100){
+      console.log("ss")
+      progress.classList.add('bg-success')
+    }
+
+    status_html.innerHTML  = status
+    progress.style.width = value + "%"
+   
+  }
+
+  
+
+</script>
+
+
+{% endblock %}
